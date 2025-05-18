@@ -1,0 +1,20 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>El Juego de la Wikipedia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>El Juego de la Wikipedia</h1>
+  <p>Empieza en un artículo de Wikipedia y navega solo con enlaces azules para llegar al destino.</p>
+  <button onclick="startGame()">Comenzar</button>
+  <div id="gameArea" style="display:none;">
+    <p><strong>Inicio:</strong> <span id="startPage"></span></p>
+    <p><strong>Destino:</strong> <span id="endPage"></span></p>
+    <iframe id="wikiFrame" width="100%" height="600px"></iframe>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
