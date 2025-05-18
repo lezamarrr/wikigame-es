@@ -9,12 +9,47 @@
 <body>
   <h1>El Juego de la Wikipedia</h1>
   <p>Empieza en un artículo de Wikipedia y navega solo con enlaces azules para llegar al destino.</p>
+
+  <label for="timerInput">Tiempo (en segundos):</label>
+  <input type="number" id="timerInput" min="10" value="60">
   <button onclick="startGame()">Comenzar</button>
+
   <div id="gameArea" style="display:none;">
     <p><strong>Inicio:</strong> <span id="startPage"></span></p>
     <p><strong>Destino:</strong> <span id="endPage"></span></p>
+    <p><strong>Tiempo restante:</strong> <span id="countdown"></span></p>
     <iframe id="wikiFrame" width="100%" height="600px"></iframe>
   </div>
-  <script src="game.js"></script>
+
+  <script>
+    const startPages = ["Chocolate", "Perro", "Pablo_Picasso", "Fútbol", "Volcán"];
+    const endPages = ["Telescopio_espacial_Hubble", "Gabriel_García_Márquez", "Matemáticas", "Bicicleta", "Isla_de_Pascua"];
+    let countdownInterval;
+
+    function startGame() {
+      const start = startPages[Math.floor(Math.random() * startPages.length)];
+      const end = endPages[Math.floor(Math.random() * endPages.length)];
+      const timerInput = parseInt(document.getElementById("timerInput").value);
+      
+      document.getElementById("startPage").textContent = start.replace(/_/g, " ");
+      document.getElementById("endPage").textContent = end.replace(/_/g, " ");
+      document.getElementById("wikiFrame").src = "https://es.wikipedia.org/wiki/" + start;
+      document.getElementById("gameArea").style.display = "block";
+
+      // Iniciar cronómetro
+      let remainingTime = timerInput;
+      document.getElementById("countdown").textContent = remainingTime + "s";
+
+      clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => {
+        remainingTime--;
+        document.getElementById("countdown").textContent = remainingTime + "s";
+        if (remainingTime <= 0) {
+          clearInterval(countdownInterval);
+          alert("\u23F0 Se acabó el tiempo!");
+        }
+      }, 1000);
+    }
+  </script>
 </body>
 </html>
