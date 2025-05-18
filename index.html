@@ -1,26 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>El Juego de la Wikipedia</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Estilos para el modo pantalla completa */
+    #fullscreenTimer {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: white;
+      color: black;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 1.2em;
+      z-index: 9999;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    #exitFullscreenBtn {
+      position: fixed;
+      top: 10px;
+      left: 150px;
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 9999;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    #wikiFrame.fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      border: none !important;
+      z-index: 9998 !important;
+    }
+  </style>
 </head>
 <body>
   <h1>El Juego de la Wikipedia</h1>
   <p>Empieza en un artículo de Wikipedia y navega solo con enlaces azules para llegar al destino.</p>
 
   <label for="minutesInput">Minutos:</label>
-  <input type="number" id="minutesInput" min="0" value="1" style="width: 60px;">
-  
+  <input type="number" id="minutesInput" min="0" value="1" style="width: 60px;" />
+
   <label for="secondsInput">Segundos:</label>
-  <input type="number" id="secondsInput" min="0" max="59" value="0" style="width: 60px;">
+  <input type="number" id="secondsInput" min="0" max="59" value="0" style="width: 60px;" />
 
   <button onclick="startGame()">Comenzar</button>
 
-  <div id="gameArea" style="display:none;">
+  <div id="gameArea" style="display:none; margin-top: 15px;">
     <p><strong>Inicio:</strong> <span id="startPage"></span></p>
     <p><strong>Destino:</strong> <span id="endPage"></span></p>
     <p><strong>Tiempo restante:</strong> <span id="countdown"></span></p>
+    <button id="fullscreenBtn" onclick="enterFullscreen()" style="margin-bottom: 10px;">Pantalla Completa</button>
     <iframe id="wikiFrame" width="100%" height="600px"></iframe>
   </div>
 
@@ -28,18 +68,18 @@
     const startPages = ["Chocolate", "Perro", "Pablo_Picasso", "Fútbol", "Volcán"];
     const endPages = ["Telescopio_espacial_Hubble", "Gabriel_García_Márquez", "Matemáticas", "Bicicleta", "Isla_de_Pascua"];
     let countdownInterval;
+    let remainingTime;
+    let isFullscreen = false;
 
     function startGame() {
       const start = startPages[Math.floor(Math.random() * startPages.length)];
       const end = endPages[Math.floor(Math.random() * endPages.length)];
 
-      // Obtener minutos y segundos
       const minutes = parseInt(document.getElementById("minutesInput").value) || 0;
       const seconds = parseInt(document.getElementById("secondsInput").value) || 0;
 
-      // Calcular tiempo total en segundos
-      let totalSeconds = minutes * 60 + seconds;
-      if (totalSeconds <= 0) {
+      remainingTime = minutes * 60 + seconds;
+      if (remainingTime <= 0) {
         alert("Por favor, ingresa un tiempo mayor que 0.");
         return;
       }
@@ -49,8 +89,6 @@
       document.getElementById("wikiFrame").src = "https://es.wikipedia.org/wiki/" + start;
       document.getElementById("gameArea").style.display = "block";
 
-      // Iniciar cronómetro
-      let remainingTime = totalSeconds;
       updateCountdown(remainingTime);
 
       clearInterval(countdownInterval);
@@ -60,6 +98,7 @@
         if (remainingTime <= 0) {
           clearInterval(countdownInterval);
           alert("⏰ ¡Se acabó el tiempo!");
+          if (isFullscreen) exitFullscreen();
         }
       }, 1000);
     }
@@ -67,8 +106,79 @@
     function updateCountdown(seconds) {
       const mins = Math.floor(seconds / 60);
       const secs = seconds % 60;
-      document.getElementById("countdown").textContent = `${mins}m ${secs}s`;
+      const countdownText = `${mins}m ${secs}s`;
+      document.getElementById("countdown").textContent = countdownText;
+
+      // Actualizar también el contador en modo fullscreen si existe
+      const fsTimer = document.getElementById("fullscreenTimer");
+      if (fsTimer) {
+        fsTimer.textContent = countdownText;
+      }
     }
+
+    function enterFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+      }
+
+      // Cambiar iframe a fullscreen y mostrar recuadro con tiempo y botón para salir
+      const iframe = document.getElementById("wikiFrame");
+      iframe.classList.add("fullscreen");
+
+      // Crear recuadro con tiempo si no existe
+      if (!document.getElementById("fullscreenTimer")) {
+        const timerBox = document.createElement("div");
+        timerBox.id = "fullscreenTimer";
+        timerBox.textContent = document.getElementById("countdown").textContent;
+        document.body.appendChild(timerBox);
+      }
+
+      // Crear botón para salir fullscreen si no existe
+      if (!document.getElementById("exitFullscreenBtn")) {
+        const exitBtn = document.createElement("button");
+        exitBtn.id = "exitFullscreenBtn";
+        exitBtn.textContent = "Salir Pantalla Completa";
+        exitBtn.onclick = exitFullscreen;
+        document.body.appendChild(exitBtn);
+      }
+
+      isFullscreen = true;
+    }
+
+    function exitFullscreen() {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) { /* Safari */
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) { /* IE11 */
+        document.msExitFullscreen();
+      }
+
+      const iframe = document.getElementById("wikiFrame");
+      iframe.classList.remove("fullscreen");
+
+      // Eliminar recuadro y botón
+      const timerBox = document.getElementById("fullscreenTimer");
+      if (timerBox) timerBox.remove();
+
+      const exitBtn = document.getElementById("exitFullscreenBtn");
+      if (exitBtn) exitBtn.remove();
+
+      isFullscreen = false;
+    }
+
+    // Detectar salida manual de pantalla completa (ej. tecla F11)
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) {
+        // Si ya no está en fullscreen, revertir cambios
+        exitFullscreen();
+      }
+    });
   </script>
 </body>
 </html>
